@@ -178,7 +178,7 @@ public class AesCore {
     public static void encryptStream(java.io.InputStream in, java.io.OutputStream out, byte[] key, byte[] iv, CipherMode mode, int keySize) throws java.io.IOException {
         byte[] expandedKey = AesKeyExpansion.expandKey(key, keySize);
         int numRounds = (keySize / 32) + 6;
-        byte[] prevBlock = (mode == CipherMode.CBC) ? java.util.Arrays.copyOf(iv, 16) : new byte[16];
+        byte[] prevBlock = (mode == CipherMode.CBC) ? Arrays.copyOf(iv, 16) : new byte[16];
 
         byte[] buffer = new byte[BUFFER_SIZE];
         int bytesRead;
@@ -187,13 +187,13 @@ public class AesCore {
             if (bytesRead == BUFFER_SIZE) {
                 // Buffer đầy đủ 8KB, tiến hành cắt và mã hóa từng khối 16 byte trên RAM
                 for (int i = 0; i < BUFFER_SIZE; i += 16) {
-                    byte[] block = java.util.Arrays.copyOfRange(buffer, i, i + 16);
+                    byte[] block = Arrays.copyOfRange(buffer, i, i + 16);
                     if (mode == CipherMode.CBC) {
                         for (int j = 0; j < 16; j++) block[j] ^= prevBlock[j];
                     }
                     byte[] encrypted = encryptBlock(block, expandedKey, numRounds);
                     out.write(encrypted);
-                    prevBlock = java.util.Arrays.copyOf(encrypted, 16);
+                    prevBlock = Arrays.copyOf(encrypted, 16);
                 }
             } else {
                 // Buffer cuối cùng của file (Kích thước < 8KB) -> Cần đệm PKCS#7
@@ -207,13 +207,13 @@ public class AesCore {
                 }
 
                 for (int i = 0; i < paddedLength; i += 16) {
-                    byte[] block = java.util.Arrays.copyOfRange(paddedBuffer, i, i + 16);
+                    byte[] block = Arrays.copyOfRange(paddedBuffer, i, i + 16);
                     if (mode == CipherMode.CBC) {
                         for (int j = 0; j < 16; j++) block[j] ^= prevBlock[j];
                     }
                     byte[] encrypted = encryptBlock(block, expandedKey, numRounds);
                     out.write(encrypted);
-                    prevBlock = java.util.Arrays.copyOf(encrypted, 16);
+                    prevBlock = Arrays.copyOf(encrypted, 16);
                 }
             }
         }
@@ -234,7 +234,7 @@ public class AesCore {
     public static void decryptStream(java.io.InputStream in, java.io.OutputStream out, byte[] key, byte[] iv, CipherMode mode, int keySize) throws java.io.IOException {
         byte[] expandedKey = AesKeyExpansion.expandKey(key, keySize);
         int numRounds = (keySize / 32) + 6;
-        byte[] prevBlock = (mode == CipherMode.CBC) ? java.util.Arrays.copyOf(iv, 16) : new byte[16];
+        byte[] prevBlock = (mode == CipherMode.CBC) ? Arrays.copyOf(iv, 16) : new byte[16];
 
         byte[] currentBuffer = new byte[BUFFER_SIZE];
         byte[] nextBuffer = new byte[BUFFER_SIZE];
@@ -251,7 +251,7 @@ public class AesCore {
             }
 
             for (int i = 0; i < currentRead; i += 16) {
-                byte[] currentCipherBlock = java.util.Arrays.copyOfRange(currentBuffer, i, i + 16);
+                byte[] currentCipherBlock = Arrays.copyOfRange(currentBuffer, i, i + 16);
                 boolean isAbsolutelyLastBlock = isLastBuffer && (i + 16 == currentRead);
 
                 byte[] decrypted = decryptBlock(currentCipherBlock, expandedKey, numRounds);
@@ -259,7 +259,7 @@ public class AesCore {
                 if (mode == CipherMode.CBC) {
                     for (int j = 0; j < 16; j++) decrypted[j] ^= prevBlock[j];
                 }
-                prevBlock = java.util.Arrays.copyOf(currentCipherBlock, 16);
+                prevBlock = Arrays.copyOf(currentCipherBlock, 16);
 
                 if (isAbsolutelyLastBlock) {
                     // Cắt bỏ Padding ở khối 16 byte cuối cùng của toàn bộ file

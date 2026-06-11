@@ -23,8 +23,11 @@ import {
   UnlockOutlined,
   CopyOutlined,
   ReloadOutlined,
+  ThunderboltOutlined,
   InboxOutlined,
   FileOutlined,
+  InfoCircleOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 
 // Import Schema
@@ -89,20 +92,26 @@ export default function AesDashboard() {
 
   const handleGenerateParams = async () => {
     const keySizeVal = configForm.getValues("keySize");
-    const needIv = configForm.getValues("mode") === "CBC";
+    const modeVal = configForm.getValues("mode");
+    const currentFormat = configForm.getValues("keyFormat");
+    const needIv = modeVal === "CBC";
+
     try {
       const response = await fetch(
-        `${BACKEND_URL}/generate-params?keySize=${keySizeVal}&needIv=${needIv}`,
+        `${BACKEND_URL}/generate-params?keySize=${keySizeVal}&needIv=${needIv}&format=${currentFormat}`,
       );
+
       if (response.ok) {
         const data = await response.json();
+
         configForm.setValue("key", data.key, { shouldValidate: true });
-        configForm.setValue("keyFormat", "HEX", { shouldValidate: true });
+
         if (needIv) {
+          configForm.setValue("ivFormat", currentFormat);
           configForm.setValue("iv", data.iv, { shouldValidate: true });
-          configForm.setValue("ivFormat", "HEX", { shouldValidate: true });
         }
-        message.success("Đã tự động sinh cấu hình khóa an toàn!");
+
+        message.success(`Đã tự động sinh cấu hình Khóa dạng ${currentFormat}!`);
       }
     } catch (error) {
       message.error("Lỗi kết nối máy chủ sinh tham số.");
@@ -284,6 +293,24 @@ export default function AesDashboard() {
     message.success("Đã sao chép vào clipboard!");
   };
 
+  const downloadTextAsFile = (text, defaultFilename) => {
+    if (!text) return message.warning("Chưa có kết quả để lưu!");
+
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", defaultFilename);
+    document.body.appendChild(link);
+    link.click();
+
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    message.success(`Đã lưu thành file: ${defaultFilename}`);
+  };
+
   // --- CỘT TRÁI (CẤU HÌNH) ---
   const renderConfigPanel = () => {
     const {
@@ -348,8 +375,9 @@ export default function AesDashboard() {
                   size="large"
                   className="w-28 text-sm"
                   options={[
-                    { value: "PLAIN_TEXT", label: "Plain" },
+                    { value: "PLAIN_TEXT", label: "Văn bản rõ" },
                     { value: "HEX", label: "HEX" },
+                    { value: "BASE64", label: "Base64" },
                   ]}
                 />
               )}
@@ -388,8 +416,9 @@ export default function AesDashboard() {
                     size="large"
                     className="w-28 text-sm"
                     options={[
-                      { value: "PLAIN_TEXT", label: "Plain" },
+                      { value: "PLAIN_TEXT", label: "Văn bản rõ" },
                       { value: "HEX", label: "HEX" },
+                      { value: "BASE64", label: "Base64" },
                     ]}
                   />
                 )}
@@ -525,14 +554,33 @@ export default function AesDashboard() {
                   <label className="block text-sm font-semibold text-emerald-400 font-mono">
                     Bản mã trả về
                   </label>
-                  <Tooltip title="Copy kết quả">
-                    <Button
-                      size="large"
-                      icon={<CopyOutlined />}
-                      onClick={() => copyToClipboard(encryptResult)}
-                      className="bg-slate-950 border-slate-700 hover:border-slate-500"
-                    />
-                  </Tooltip>
+                  <div className="flex gap-2">
+                    {" "}
+                    {/* Nhóm 2 nút vào thẻ div flex */}
+                    <Tooltip title="Lưu thành file .txt">
+                      <Button
+                        size="large"
+                        icon={<DownloadOutlined />}
+                        onClick={() =>
+                          downloadTextAsFile(
+                            encryptResult,
+                            "ciphertext_result.txt",
+                          )
+                        }
+                        disabled={!encryptResult} // Khóa nút nếu chưa có kết quả
+                        className="bg-slate-950 border-slate-700 hover:border-emerald-500 text-emerald-400"
+                      />
+                    </Tooltip>
+                    <Tooltip title="Copy kết quả">
+                      <Button
+                        size="large"
+                        icon={<CopyOutlined />}
+                        onClick={() => copyToClipboard(encryptResult)}
+                        disabled={!encryptResult}
+                        className="bg-slate-950 border-slate-700 hover:border-slate-500"
+                      />
+                    </Tooltip>
+                  </div>
                 </div>
                 <TextArea
                   rows={4}
@@ -682,20 +730,36 @@ export default function AesDashboard() {
                   Thực hiện giải mã text
                 </Button>
               </div>
-
               <div className="border-t border-slate-800 pt-5 mt-2">
                 <div className="flex justify-between items-center mb-2">
                   <label className="block text-sm font-semibold text-indigo-400 font-mono">
                     Văn bản rõ khôi phục
                   </label>
-                  <Tooltip title="Copy kết quả">
-                    <Button
-                      size="large"
-                      icon={<CopyOutlined />}
-                      onClick={() => copyToClipboard(decryptResult)}
-                      className="bg-slate-950 border-slate-700 hover:border-slate-500"
-                    />
-                  </Tooltip>
+                  <div className="flex gap-2">
+                    <Tooltip title="Lưu thành file .txt">
+                      <Button
+                        size="large"
+                        icon={<DownloadOutlined />}
+                        onClick={() =>
+                          downloadTextAsFile(
+                            decryptResult,
+                            "plaintext_result.txt",
+                          )
+                        }
+                        disabled={!decryptResult}
+                        className="bg-slate-950 border-slate-700 hover:border-indigo-500 text-indigo-400"
+                      />
+                    </Tooltip>
+                    <Tooltip title="Copy kết quả">
+                      <Button
+                        size="large"
+                        icon={<CopyOutlined />}
+                        onClick={() => copyToClipboard(decryptResult)}
+                        disabled={!decryptResult}
+                        className="bg-slate-950 border-slate-700 hover:border-slate-500"
+                      />
+                    </Tooltip>
+                  </div>
                 </div>
                 <TextArea
                   rows={4}

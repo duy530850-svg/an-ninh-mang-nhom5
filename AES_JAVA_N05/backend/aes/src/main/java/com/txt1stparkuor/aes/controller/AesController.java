@@ -5,7 +5,6 @@ import com.txt1stparkuor.aes.dto.DecryptionRequest;
 import com.txt1stparkuor.aes.dto.EncryptionRequest;
 import com.txt1stparkuor.aes.dto.ParameterResponse;
 import com.txt1stparkuor.aes.service.AesService;
-import com.txt1stparkuor.aes.utils.AesUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -34,12 +33,10 @@ public class AesController {
     @GetMapping("/generate-params")
     public ResponseEntity<ParameterResponse> generateParams(
             @RequestParam int keySize,
-            @RequestParam boolean needIv) {
+            @RequestParam boolean needIv,
+            @RequestParam(defaultValue = "HEX") String format) {
 
-        int keyByteLength = keySize / 8;
-        String actualKey = AesUtil.generateRandomHex(keyByteLength);
-        String actualIv = needIv ? AesUtil.generateRandomHex(16) : "";
-
-        return ResponseEntity.ok(new ParameterResponse(actualKey, actualIv));
+        ParameterResponse response = aesService.generateParams(keySize, needIv, format);
+        return ResponseEntity.ok(response);
     }
 }

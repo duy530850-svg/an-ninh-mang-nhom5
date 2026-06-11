@@ -1,6 +1,7 @@
 package com.txt1stparkuor.aes.utils;
 
 import com.txt1stparkuor.aes.enums.DataFormat;
+import com.txt1stparkuor.aes.exception.CryptoException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
@@ -18,11 +19,18 @@ public class AesUtil {
         if (input == null || input.isEmpty()) {
             return new byte[0];
         }
-        return switch (format) {
-            case PLAIN_TEXT -> input.getBytes(StandardCharsets.UTF_8);
-            case HEX -> hexToBytes(input);
-            case BASE64 -> Base64.getDecoder().decode(input.trim());
-        };
+
+        try {
+            return switch (format) {
+                case PLAIN_TEXT -> input.getBytes(StandardCharsets.UTF_8);
+                case HEX -> hexToBytes(input);
+                case BASE64 -> Base64.getDecoder().decode(input.trim());
+            };
+        } catch (IllegalArgumentException e) {
+            throw new CryptoException("Dữ liệu không đúng chuẩn định dạng " + format.name() + " (Chứa ký tự lạ hoặc sai cấu trúc).");
+        } catch (Exception e) {
+            throw new CryptoException("Lỗi giải mã định dạng dữ liệu đầu vào.");
+        }
     }
 
     /**

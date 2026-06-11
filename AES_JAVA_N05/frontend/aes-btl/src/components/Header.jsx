@@ -7,7 +7,7 @@ export default function Header({ apiConnected }) {
       <div className="flex items-center gap-3">
         <ThunderboltOutlined className="text-emerald-400 text-2xl animate-pulse" />
         <h1 className="text-2xl font-extrabold text-emerald-400 font-mono tracking-wider">
-          AES.WEB_PORTAL
+          AES.WEB_NHOM5
         </h1>
       </div>
       <div className="flex items-center gap-2">
@@ -15,7 +15,7 @@ export default function Header({ apiConnected }) {
           className={`w-3 h-3 rounded-full ${apiConnected ? "bg-emerald-500" : "bg-red-500"} animate-pulse`}
         ></span>
         <span className="text-sm font-semibold text-slate-400 font-mono tracking-wide">
-          {apiConnected ? "Backend connected" : "Backend disconnected"}
+          {apiConnected ? "Backend đã kết nối" : "Backend chưa kết nối"}
         </span>
       </div>
     </header>

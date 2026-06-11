@@ -15,9 +15,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<CryptoResponse> handleIllegalArgument(IllegalArgumentException e) {
-        CryptoResponse response = new CryptoResponse(false, null, "Yêu cầu không hợp lệ: " + e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        System.err.println("[System Error - IllegalArgument]: " + e.getMessage());
+        CryptoResponse response = new CryptoResponse(false, null, "Tham số gửi lên không hợp lệ hoặc sai định dạng. Vui lòng kiểm tra lại.");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(response);
     }
+
 
     @ExceptionHandler(CryptoException.class)
     public ResponseEntity<CryptoResponse> handleCryptoException(CryptoException e) {
@@ -27,8 +30,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<CryptoResponse> handleGenericException(Exception e) {
-        CryptoResponse response = new CryptoResponse(false, null, "Lỗi hệ thống không mong muốn: " + e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        System.err.println("[Unexpected System Error]: " + e.getMessage());
+        e.printStackTrace();
+        CryptoResponse response = new CryptoResponse(false, null, "Đã xảy ra lỗi bất ngờ trên máy chủ. Vui lòng đảm bảo bản mã hoặc file không bị sửa đổi.");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(response);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
